@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterviewAI - Your AI Interview Coach</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151934;
+            --bg-tertiary: #1e2443;
+            --accent-primary: #00ff88;
+            --accent-secondary: #00d4ff;
+            --accent-tertiary: #ff006e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gradient-1: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            --gradient-2: linear-gradient(135deg, #ff006e 0%, #ff6b9d 100%);
+            --gradient-3: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .bg-gradient-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0,255,136,0.3) 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .bg-gradient-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0,212,255,0.3) 0%, transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: 7s;
+        }
+
+        .bg-gradient-3 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,0,110,0.2) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 14s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 10;
+            padding: 2rem 2rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(0,255,136,0.3);
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--accent-primary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Setup Screen */
+        .setup-container {
+            max-width: 800px;
+            margin: 3rem auto;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .setup-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .setup-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(0,255,136,0.2);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .file-upload {
+            position: relative;
+            border: 2px dashed rgba(0,255,136,0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0,255,136,0.02);
+        }
+
+        .file-upload:hover {
+            border-color: var(--accent-primary);
+            background: rgba(0,255,136,0.05);
+        }
+
+        .file-upload input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+        }
+
+        .file-upload-content {
+            pointer-events: none;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9375rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: rgba(0,255,136,0.02);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 12px;
+            color: var(--bg-primary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0,255,136,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Interview Screen */
+        .interview-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .interview-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .question-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2.5rem;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .question-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .difficulty-badge {
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .difficulty-easy {
+            background: rgba(16,185,129,0.1);
+            color: var(--success);
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+
+        .difficulty-medium {
+            background: rgba(245,158,11,0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+
+        .difficulty-hard {
+            background: rgba(239,68,68,0.1);
+            color: var(--error);
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        .timer-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .timer-icon {
+            font-size: 1.5rem;
+        }
+
+        .timer-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .timer-warning {
+            color: var(--warning);
+        }
+
+        .timer-danger {
+            color: var(--error);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .answer-input {
+            width: 100%;
+            min-height: 180px;
+            padding: 1.25rem;
+            background: var(--bg-tertiary);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: rgba(0,255,136,0.02);
+        }
+
+        .answer-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        /* Sidebar */
+        .interview-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .progress-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .progress-title {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .progress-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-label {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .progress-value {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1.25rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            transition: width 0.6s ease;
+            border-radius: 4px;
+        }
+
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        .indicator-icon {
+            font-size: 1.25rem;
+        }
+
+        .indicator-text {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .indicator-badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Results Screen */
+        .results-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .results-score {
+            font-size: 6rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .results-label {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .readiness-badge {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .readiness-strong {
+            background: rgba(16,185,129,0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .readiness-average {
+            background: rgba(245,158,11,0.1);
+            color: var(--warning);
+            border: 2px solid var(--warning);
+        }
+
+        .readiness-needs-improvement {
+            background: rgba(239,68,68,0.1);
+            color: var(--error);
+            border: 2px solid var(--error);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .feedback-section {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feedback-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .feedback-list {
+            list-style: none;
+        }
+
+        .feedback-item {
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .feedback-icon {
+            font-size: 1.25rem;
+            margin-top: 0.125rem;
+        }
+
+        .skill-breakdown {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .skill-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .skill-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .skill-bar {
+            flex: 2;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-bar-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .skill-score {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--accent-primary);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 2rem;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0,255,136,0.1);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .alert-box {
+            padding: 1rem;
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .interview-container {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .setup-title {
+                font-size: 2rem;
+            }
+
+            .question-text {
+                font-size: 1.25rem;
+            }
+
+            .results-score {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Main App Component
+        function App() {
+            const [stage, setStage] = useState('setup'); // setup, interview, results
+            const [resume, setResume] = useState(null);
+            const [jobDescription, setJobDescription] = useState('');
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [questions, setQuestions] = useState([]);
+            const [answers, setAnswers] = useState([]);
+            const [currentAnswer, setCurrentAnswer] = useState('');
+            const [timeLeft, setTimeLeft] = useState(120);
+            const [performance, setPerformance] = useState({
+                scores: [],
+                avgScore: 0,
+                readiness: 'Average'
+            });
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [interviewData, setInterviewData] = useState(null);
+            const [pasteCount, setPasteCount] = useState(0);
+            const [tabSwitches, setTabSwitches] = useState(0);
+            const timerRef = useRef(null);
+
+            // Timer effect
+            useEffect(() => {
+                if (stage === 'interview' && timeLeft > 0 && !isProcessing) {
+                    timerRef.current = setInterval(() => {
+                        setTimeLeft(prev => {
+                            if (prev <= 1) {
+                                handleSubmitAnswer(true); // Auto-submit on timeout
+                                return 120;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                } else {
+                    clearInterval(timerRef.current);
+                }
+
+                return () => clearInterval(timerRef.current);
+            }, [stage, timeLeft, isProcessing]);
+
+            // Tab switching detection
+            useEffect(() => {
+                const handleVisibilityChange = () => {
+                    if (document.hidden && stage === 'interview') {
+                        setTabSwitches(prev => prev + 1);
+                    }
+                };
+
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                return () => {
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                };
+            }, [stage]);
+
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.type === 'application/pdf') {
+                        setResume(file);
+                    } else {
+                        alert('Please upload a PDF file only');
+                    }
+                }
+            };
+
+            const startInterview = async () => {
+                if (!resume) {
+                    alert('Please upload your resume before starting the interview');
+                    return;
+                }
+                
+                if (!jobDescription.trim()) {
+                    alert('Please provide a job description');
+                    return;
+                }
+
+                if (jobDescription.trim().length < 50) {
+                    alert('Job description is too short. Please provide more details (minimum 50 characters)');
+                    return;
+                }
+
+                setIsProcessing(true);
+
+                // Simulate resume parsing
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const generatedQuestions = await generateQuestions(jobDescription);
+                setQuestions(generatedQuestions);
+                setStage('interview');
+                setTimeLeft(120);
+                setPasteCount(0);
+                setTabSwitches(0);
+                setIsProcessing(false);
+            };
+
+            const generateQuestions = async (jd) => {
+                try {
+                    const response = await fetch("https://api.anthropic.com/v1/messages", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            model: "claude-sonnet-4-20250514",
+                            max_tokens: 1000,
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: `Generate 8 technical interview questions based on this job description. Create a mix of difficulty levels: 2 easy, 3 medium, and 3 hard questions. The questions should be relevant to the role and test different aspects like technical knowledge, problem-solving, and practical experience.
+
+Return ONLY a JSON array of objects with "question", "difficulty", "category", and "expectedPoints" fields. No preamble, explanation, or markdown formatting.
+
+Job Description:
+${jd}
+
+Example format (DO NOT copy these questions, generate new ones based on the JD):
+[
+  {
+    "question": "Your question here",
+    "difficulty": "easy",
+    "category": "Technical Knowledge",
+    "expectedPoints": ["key concept 1", "key concept 2", "key concept 3"]
+  }
+]`
+                                }
+                            ]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const text = data.content.map(item => item.text || "").join("\n").trim();
+                    const cleanText = text.replace(/```json|```/g, "").trim();
+                    const parsed = JSON.parse(cleanText);
+                    
+                    if (!Array.isArray(parsed) || parsed.length === 0) {
+                        throw new Error('Invalid response format');
+                    }
+                    
+                    return parsed;
+                } catch (err) {
+                    console.error("Question generation error:", err);
+                    // Fallback questions
+                    return [
+                        { 
+                            question: "Explain the concept of Object-Oriented Programming and its key principles.", 
+                            difficulty: "easy", 
+                            category: "Core Concepts", 
+                            expectedPoints: ["encapsulation", "inheritance", "polymorphism", "abstraction"] 
+                        },
+                        { 
+                            question: "What is the difference between abstract classes and interfaces? When would you use each?", 
+                            difficulty: "easy", 
+                            category: "Core Concepts", 
+                            expectedPoints: ["implementation", "multiple inheritance", "use cases", "design patterns"] 
+                        },
+                        { 
+                            question: "Describe how you would design a RESTful API for a user management system.", 
+                            difficulty: "medium", 
+                            category: "System Design", 
+                            expectedPoints: ["endpoints", "HTTP methods", "authentication", "data structure", "status codes"] 
+                        },
+                        { 
+                            question: "Explain the concept of database normalization and denormalization. When would you use each approach?", 
+                            difficulty: "medium", 
+                            category: "Databases", 
+                            expectedPoints: ["normal forms", "performance", "redundancy", "use cases", "trade-offs"] 
+                        },
+                        { 
+                            question: "How would you implement authentication and authorization in a web application?", 
+                            difficulty: "medium", 
+                            category: "Security", 
+                            expectedPoints: ["JWT", "OAuth", "session management", "role-based access", "security best practices"] 
+                        },
+                        { 
+                            question: "Design a scalable URL shortening service like bit.ly. Discuss your architecture choices and how you'd handle millions of requests.", 
+                            difficulty: "hard", 
+                            category: "System Design", 
+                            expectedPoints: ["hashing", "database design", "scalability", "collision handling", "caching", "load balancing"] 
+                        },
+                        { 
+                            question: "Explain how you would optimize a slow-performing database query. What tools and techniques would you use to identify and fix the issue?", 
+                            difficulty: "hard", 
+                            category: "Performance", 
+                            expectedPoints: ["indexing", "query plan", "caching", "profiling", "query optimization", "database tuning"] 
+                        },
+                        { 
+                            question: "Describe a challenging technical problem you solved in a previous project. What was your approach, what obstacles did you face, and what did you learn?", 
+                            difficulty: "hard", 
+                            category: "Behavioral", 
+                            expectedPoints: ["problem-solving", "technical depth", "learning", "impact", "collaboration"] 
+                        }
+                    ];
+                }
+            };
+
+            const handlePaste = () => {
+                setPasteCount(prev => prev + 1);
+                if (pasteCount >= 2) {
+                    const confirmPaste = window.confirm(
+                        "⚠️ Multiple paste actions detected. This may affect your evaluation score. Continue?"
+                    );
+                    if (!confirmPaste) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
+            const handleSubmitAnswer = async (isTimeout = false) => {
+                const answer = isTimeout ? "No answer provided (timeout)" : currentAnswer;
+                const timeTaken = 120 - timeLeft;
+                
+                setIsProcessing(true);
+
+                // Evaluate answer using Claude API
+                const score = await evaluateAnswer(
+                    questions[currentQuestion],
+                    answer,
+                    timeTaken,
+                    isTimeout,
+                    pasteCount
+                );
+
+                const newAnswers = [...answers, {
+                    question: questions[currentQuestion].question,
+                    answer: answer,
+                    timeTaken: timeTaken,
+                    score: score,
+                    difficulty: questions[currentQuestion].difficulty,
+                    category: questions[currentQuestion].category
+                }];
+
+                setAnswers(newAnswers);
+
+                // Update performance tracking
+                const newScores = [...performance.scores, score];
+                const avgScore = newScores.reduce((a, b) => a + b, 0) / newScores.length;
+
+                setPerformance({
+                    scores: newScores,
+                    avgScore: avgScore,
+                    readiness: avgScore >= 70 ? 'Strong' : avgScore >= 50 ? 'Average' : 'Needs Improvement'
+                });
+
+                // Check early termination
+                if (avgScore < 30 && newAnswers.length >= 3) {
+                    await generateResults(newAnswers, true);
+                    setIsProcessing(false);
+                    return;
+                }
+
+                // Move to next question or finish
+                if (currentQuestion < questions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                    setCurrentAnswer('');
+                    setTimeLeft(120);
+                    setPasteCount(0);
+                    setIsProcessing(false);
+                } else {
+                    await generateResults(newAnswers, false);
+                    setIsProcessing(false);
+                }
+            };
+
+            const evaluateAnswer = async (question, answer, timeTaken, isTimeout, pasteCount) => {
+                if (isTimeout || !answer.trim()) {
+                    return 0;
+                }
+
+                try {
+                    const response = await fetch("https://api.anthropic.com/v1/messages", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            model: "claude-sonnet-4-20250514",
+                            max_tokens: 1000,
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: `Evaluate this interview answer objectively and return ONLY a JSON object with numerical scores. No preamble, explanation, or markdown formatting.
+
+Question: ${question.question}
+Expected Key Points: ${JSON.stringify(question.expectedPoints)}
+Difficulty Level: ${question.difficulty}
+Category: ${question.category}
+
+Candidate's Answer: ${answer}
+
+Time Taken: ${timeTaken} seconds (out of 120 seconds allowed)
+Paste Events: ${pasteCount}
+
+Evaluation Criteria:
+1. Accuracy (0-100): How correct and factually accurate is the answer?
+2. Clarity (0-100): How well-structured and clearly communicated is the answer?
+3. Depth (0-100): How detailed and comprehensive is the answer?
+4. Relevance (0-100): How well does the answer address the specific question?
+5. Time Efficiency (0-100): Consider the quality achieved within time constraints
+
+Return format (NO other text):
+{
+  "accuracy": 0-100,
+  "clarity": 0-100,
+  "depth": 0-100,
+  "relevance": 0-100,
+  "timeEfficiency": 0-100,
+  "overallScore": 0-100
+}`
+                                }
+                            ]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const text = data.content.map(item => item.text || "").join("\n").trim();
+                    const cleanText = text.replace(/```json|```/g, "").trim();
+                    const evaluation = JSON.parse(cleanText);
+                    
+                    // Apply paste penalty if excessive
+                    let finalScore = evaluation.overallScore;
+                    if (pasteCount > 3) {
+                        finalScore = finalScore * 0.85; // 15% penalty
+                    }
+                    
+                    return Math.round(finalScore);
+                } catch (err) {
+                    console.error("Evaluation error:", err);
+                    // Fallback scoring
+                    const wordCount = answer.split(/\s+/).length;
+                    const hasKeywords = question.expectedPoints.some(point => 
+                        answer.toLowerCase().includes(point.toLowerCase())
+                    );
+                    
+                    let score = 30;
+                    if (wordCount > 50) score += 20;
+                    if (wordCount > 100) score += 10;
+                    if (hasKeywords) score += 30;
+                    if (timeTaken < 90) score += 10;
+                    
+                    // Paste penalty
+                    if (pasteCount > 3) score = score * 0.85;
+                    
+                    return Math.min(Math.round(score), 100);
+                }
+            };
+
+            const generateResults = async (allAnswers, earlyTermination) => {
+                setIsProcessing(true);
+
+                try {
+                    const response = await fetch("https://api.anthropic.com/v1/messages", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            model: "claude-sonnet-4-20250514",
+                            max_tokens: 1000,
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: `Analyze this interview performance comprehensively and return ONLY a JSON object. No preamble, explanation, or markdown formatting.
+
+Interview Data:
+${JSON.stringify(allAnswers, null, 2)}
+
+Early Termination: ${earlyTermination}
+Tab Switches During Interview: ${tabSwitches}
+
+Provide a thorough analysis with:
+1. Overall readiness score (0-100)
+2. Readiness category (Strong/Average/Needs Improvement)
+3. 2-3 specific strengths
+4. 2-3 specific weaknesses
+5. 3-5 actionable recommendations
+6. Skill breakdown across key dimensions
+
+Return format (NO other text):
+{
+  "overallScore": 0-100,
+  "readiness": "Strong" or "Average" or "Needs Improvement",
+  "strengths": ["specific strength 1", "specific strength 2", "specific strength 3"],
+  "weaknesses": ["specific weakness 1", "specific weakness 2"],
+  "recommendations": ["actionable recommendation 1", "actionable recommendation 2", "actionable recommendation 3"],
+  "skillBreakdown": {
+    "Technical Knowledge": 0-100,
+    "Problem Solving": 0-100,
+    "Communication": 0-100,
+    "Time Management": 0-100
+  }
+}`
+                                }
+                            ]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const text = data.content.map(item => item.text || "").join("\n").trim();
+                    const cleanText = text.replace(/```json|```/g, "").trim();
+                    const results = JSON.parse(cleanText);
+                    
+                    // Add tab switching info if significant
+                    if (tabSwitches > 5) {
+                        results.recommendations.push(`Minimize tab switching during interviews (${tabSwitches} switches detected)`);
+                    }
+                    
+                    setInterviewData(results);
+                } catch (err) {
+                    console.error("Results generation error:", err);
+                    // Fallback results
+                    const avgScore = allAnswers.reduce((sum, a) => sum + a.score, 0) / allAnswers.length;
+                    const avgTime = allAnswers.reduce((sum, a) => sum + a.timeTaken, 0) / allAnswers.length;
+                    
+                    setInterviewData({
+                        overallScore: Math.round(avgScore),
+                        readiness: avgScore >= 70 ? 'Strong' : avgScore >= 50 ? 'Average' : 'Needs Improvement',
+                        strengths: [
+                            "Shows understanding of core concepts",
+                            "Demonstrates relevant experience",
+                            "Good communication skills"
+                        ],
+                        weaknesses: [
+                            "Could provide more detailed examples",
+                            "Time management needs improvement",
+                            "Some answers lack depth"
+                        ],
+                        recommendations: [
+                            "Practice answering technical questions with specific examples",
+                            "Work on time management - aim for concise yet complete answers",
+                            "Review fundamental concepts in areas where you scored lower",
+                            "Prepare real-world examples from your experience",
+                            earlyTermination ? "Focus on strengthening foundational knowledge" : "Continue practicing with increasingly difficult questions"
+                        ],
+                        skillBreakdown: {
+                            "Technical Knowledge": Math.round(avgScore * 0.95),
+                            "Problem Solving": Math.round(avgScore * 1.05),
+                            "Communication": Math.round(avgScore * 0.9),
+                            "Time Management": Math.round((120 - avgTime) / 120 * 100)
+                        }
+                    });
+                }
+
+                setStage('results');
+                setIsProcessing(false);
+            };
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const restartInterview = () => {
+                setStage('setup');
+                setResume(null);
+                setJobDescription('');
+                setCurrentQuestion(0);
+                setQuestions([]);
+                setAnswers([]);
+                setCurrentAnswer('');
+                setTimeLeft(120);
+                setPerformance({ scores: [], avgScore: 0, readiness: 'Average' });
+                setInterviewData(null);
+                setPasteCount(0);
+                setTabSwitches(0);
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="bg-animation">
+                        <div className="bg-gradient bg-gradient-1"></div>
+                        <div className="bg-gradient bg-gradient-2"></div>
+                        <div className="bg-gradient bg-gradient-3"></div>
+                    </div>
+
+                    <header className="header">
+                        <div className="logo">
+                            <div className="logo-icon">🎯</div>
+                            InterviewAI
+                        </div>
+                        {stage === 'interview' && (
+                            <div className="status-badge">
+                                <div className="status-dot"></div>
+                                Interview in Progress
+                            </div>
+                        )}
+                    </header>
+
+                    <main className="main-content">
+                        {stage === 'setup' && <SetupScreen 
+                            resume={resume}
+                            jobDescription={jobDescription}
+                            onFileUpload={handleFileUpload}
+                            onJDChange={setJobDescription}
+                            onStart={startInterview}
+                            isProcessing={isProcessing}
+                        />}
+
+                        {stage === 'interview' && !isProcessing && (
+                            <InterviewScreen
+                                question={questions[currentQuestion]}
+                                questionNumber={currentQuestion + 1}
+                                totalQuestions={questions.length}
+                                timeLeft={timeLeft}
+                                currentAnswer={currentAnswer}
+                                onAnswerChange={setCurrentAnswer}
+                                onSubmit={() => handleSubmitAnswer(false)}
+                                onPaste={handlePaste}
+                                performance={performance}
+                                pasteCount={pasteCount}
+                                tabSwitches={tabSwitches}
+                                formatTime={formatTime}
+                            />
+                        )}
+
+                        {stage === 'results' && interviewData && (
+                            <ResultsScreen
+                                data={interviewData}
+                                totalQuestions={answers.length}
+                                expectedQuestions={questions.length}
+                                onRestart={restartInterview}
+                            />
+                        )}
+
+                        {isProcessing && (
+                            <div className="loading-container">
+                                <div className="spinner"></div>
+                                <div className="loading-text">
+                                    {stage === 'setup' ? 'Analyzing your profile and generating personalized questions...' : 
+                                     stage === 'interview' ? 'Evaluating your answer with AI...' : 
+                                     'Generating your comprehensive performance report...'}
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        // Setup Screen Component
+        function SetupScreen({ resume, jobDescription, onFileUpload, onJDChange, onStart, isProcessing }) {
+            return (
+                <div className="setup-container">
+                    <div className="setup-header">
+                        <h1 className="setup-title">AI Interview Coach</h1>
+                        <p className="setup-subtitle">Practice with realistic, adaptive interviews powered by advanced AI</p>
+                    </div>
+
+                    <div className="card">
+                        <h2 className="card-title">
+                            <div className="card-icon">📄</div>
+                            Upload Your Resume
+                        </h2>
+                        <div className="form-group">
+                            <label className="form-label">Resume (PDF Format)</label>
+                            <div className="file-upload">
+                                <input type="file" accept=".pdf" onChange={onFileUpload} />
+                                <div className="file-upload-content">
+                                    <div className="file-upload-icon">📎</div>
+                                    <div>
+                                        {resume ? (
+                                            <div className="file-name">
+                                                ✓ {resume.name}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div style={{marginBottom: '0.5rem', fontWeight: 500}}>
+                                                    Click to upload or drag and drop
+                                                </div>
+                                                <div style={{fontSize: '0.875rem', color: 'var(--text-tertiary)'}}>
+                                                    PDF files only • Max 10MB
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2 className="card-title">
+                            <div className="card-icon">💼</div>
+                            Job Description
+                        </h2>
+                        <div className="form-group">
+                            <label className="form-label">Paste the Complete Job Description</label>
+                            <textarea
+                                placeholder="Enter the job description including required skills, experience, responsibilities, and qualifications... (minimum 50 characters)"
+                                value={jobDescription}
+                                onChange={(e) => onJDChange(e.target.value)}
+                                style={{minHeight: '200px'}}
+                            />
+                            <div style={{fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem'}}>
+                                {jobDescription.length} characters • Minimum 50 required
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="alert-box">
+                        <div className="alert-icon">💡</div>
+                        <div>
+                            <strong>Pro Tip:</strong> The more detailed your job description, the more relevant and tailored your interview questions will be!
+                        </div>
+                    </div>
+
+                    <button 
+                        className="btn btn-full" 
+                        onClick={onStart}
+                        disabled={isProcessing || !resume || !jobDescription.trim() || jobDescription.length < 50}
+                    >
+                        {isProcessing ? '⏳ Preparing Your Interview...' : '🚀 Start Interview'}
+                    </button>
+                </div>
+            );
+        }
+
+        // Interview Screen Component
+        function InterviewScreen({ 
+            question, 
+            questionNumber, 
+            totalQuestions, 
+            timeLeft, 
+            currentAnswer, 
+            onAnswerChange, 
+            onSubmit,
+            onPaste,
+            performance,
+            pasteCount,
+            tabSwitches,
+            formatTime 
+        }) {
+            const timerClass = timeLeft > 60 ? '' : timeLeft > 30 ? 'timer-warning' : 'timer-danger';
+
+            const handlePasteEvent = (e) => {
+                const shouldContinue = onPaste();
+                if (!shouldContinue) {
+                    e.preventDefault();
+                }
+            };
+
+            return (
+                <div className="interview-container">
+                    <div className="interview-main">
+                        <div className="question-card">
+                            <div className="question-header">
+                                <div className="question-number">
+                                    Question {questionNumber} of {totalQuestions}
+                                </div>
+                                <div className={`difficulty-badge difficulty-${question.difficulty}`}>
+                                    {question.difficulty}
+                                </div>
+                            </div>
+                            <div className="question-text">
+                                {question.question}
+                            </div>
+                            <div style={{fontSize: '0.875rem', color: 'var(--text-tertiary)', marginTop: 'auto'}}>
+                                Category: {question.category}
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="timer-display">
+                                <div className="timer-icon">⏱️</div>
+                                <div className={`timer-text ${timerClass}`}>
+                                    {formatTime(timeLeft)}
+                                </div>
+                                <div style={{marginLeft: 'auto', fontSize: '0.875rem', color: 'var(--text-tertiary)'}}>
+                                    Time Remaining
+                                </div>
+                            </div>
+
+                            {pasteCount > 0 && (
+                                <div className="alert-box" style={{marginBottom: '1rem'}}>
+                                    <div className="alert-icon">⚠️</div>
+                                    <div>
+                                        Paste detected ({pasteCount} time{pasteCount !== 1 ? 's' : ''}). Answer quality evaluation may be affected.
+                                    </div>
+                                </div>
+                            )}
+
+                            <textarea
+                                className="answer-input"
+                                placeholder="Type your answer here... Be specific and provide examples where relevant."
+                                value={currentAnswer}
+                                onChange={(e) => onAnswerChange(e.target.value)}
+                                onPaste={handlePasteEvent}
+                            />
+
+                            <div className="answer-actions">
+                                <button 
+                                    className="btn" 
+                                    onClick={onSubmit} 
+                                    style={{flex: 1}}
+                                    disabled={!currentAnswer.trim()}
+                                >
+                                    Submit Answer →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="interview-sidebar">
+                        <div className="progress-card">
+                            <div className="progress-title">Interview Progress</div>
+                            <div className="progress-stat">
+                                <div className="progress-label">Questions</div>
+                                <div className="progress-value">
+                                    {questionNumber}/{totalQuestions}
+                                </div>
+                            </div>
+                            <div className="progress-bar">
+                                <div 
+                                    className="progress-fill" 
+                                    style={{width: `${(questionNumber / totalQuestions) * 100}%`}}
+                                ></div>
+                            </div>
+
+                            {performance.scores.length > 0 && (
+                                <>
+                                    <div className="progress-stat">
+                                        <div className="progress-label">Avg Score</div>
+                                        <div className="progress-value">
+                                            {Math.round(performance.avgScore)}%
+                                        </div>
+                                    </div>
+                                    <div className="progress-bar">
+                                        <div 
+                                            className="progress-fill" 
+                                            style={{width: `${performance.avgScore}%`}}
+                                        ></div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="progress-card">
+                            <div className="progress-title">Performance Indicators</div>
+                            <div className="performance-indicator">
+                                <div className="indicator-icon">💡</div>
+                                <div className="indicator-text">Answer Quality</div>
+                                <div className="indicator-badge" style={{
+                                    background: performance.avgScore >= 70 ? 'rgba(16,185,129,0.1)' : 
+                                               performance.avgScore >= 50 ? 'rgba(245,158,11,0.1)' : 
+                                               'rgba(239,68,68,0.1)',
+                                    color: performance.avgScore >= 70 ? 'var(--success)' : 
+                                          performance.avgScore >= 50 ? 'var(--warning)' : 
+                                          'var(--error)'
+                                }}>
+                                    {performance.readiness}
+                                </div>
+                            </div>
+                            <div className="performance-indicator">
+                                <div className="indicator-icon">⚡</div>
+                                <div className="indicator-text">Response Time</div>
+                                <div className="indicator-badge" style={{
+                                    background: timeLeft > 60 ? 'rgba(16,185,129,0.1)' : 
+                                               timeLeft > 30 ? 'rgba(245,158,11,0.1)' : 
+                                               'rgba(239,68,68,0.1)',
+                                    color: timeLeft > 60 ? 'var(--success)' : 
+                                          timeLeft > 30 ? 'var(--warning)' : 
+                                          'var(--error)'
+                                }}>
+                                    {timeLeft > 60 ? 'Good' : timeLeft > 30 ? 'Fair' : 'Low'}
+                                </div>
+                            </div>
+                            {tabSwitches > 0 && (
+                                <div className="performance-indicator">
+                                    <div className="indicator-icon">🔄</div>
+                                    <div className="indicator-text">Focus</div>
+                                    <div className="indicator-badge" style={{
+                                        background: 'rgba(239,68,68,0.1)',
+                                        color: 'var(--error)'
+                                    }}>
+                                        {tabSwitches} switch{tabSwitches !== 1 ? 'es' : ''}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Results Screen Component
+        function ResultsScreen({ data, totalQuestions, expectedQuestions, onRestart }) {
+            const earlyTermination = totalQuestions < expectedQuestions;
+            
+            return (
+                <div className="results-container">
+                    <div className="results-header">
+                        <div className="results-score">{data.overallScore}</div>
+                        <div className="results-label">Interview Readiness Score</div>
+                        <div className={`readiness-badge readiness-${data.readiness.toLowerCase().replace(' ', '-')}`}>
+                            {data.readiness}
+                        </div>
+                        {earlyTermination && (
+                            <div style={{marginTop: '1rem', color: 'var(--warning)', fontSize: '0.9375rem'}}>
+                                ⚠️ Interview ended early after {totalQuestions} questions due to performance threshold
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="results-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{totalQuestions}</div>
+                            <div className="stat-label">Questions Completed</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{Math.round(data.overallScore)}%</div>
+                            <div className="stat-label">Overall Performance</div>
+                        </div>
+                    </div>
+
+                    <div className="feedback-section">
+                        <h3 className="feedback-title">
+                            <div className="card-icon">📊</div>
+                            Skill Breakdown
+                        </h3>
+                        <div className="skill-breakdown">
+                            {Object.entries(data.skillBreakdown).map(([skill, score]) => (
+                                <div key={skill} className="skill-item">
+                                    <div className="skill-name">{skill}</div>
+                                    <div className="skill-bar">
+                                        <div className="skill-bar-fill" style={{width: `${score}%`}}></div>
+                                    </div>
+                                    <div className="skill-score">{score}%</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="feedback-section">
+                        <h3 className="feedback-title">
+                            <div className="card-icon">💪</div>
+                            Strengths
+                        </h3>
+                        <ul className="feedback-list">
+                            {data.strengths.map((strength, idx) => (
+                                <li key={idx} className="feedback-item">
+                                    <div className="feedback-icon">✅</div>
+                                    <div>{strength}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="feedback-section">
+                        <h3 className="feedback-title">
+                            <div className="card-icon">🎯</div>
+                            Areas for Improvement
+                        </h3>
+                        <ul className="feedback-list">
+                            {data.weaknesses.map((weakness, idx) => (
+                                <li key={idx} className="feedback-item">
+                                    <div className="feedback-icon">⚠️</div>
+                                    <div>{weakness}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="feedback-section">
+                        <h3 className="feedback-title">
+                            <div className="card-icon">🚀</div>
+                            Recommendations
+                        </h3>
+                        <ul className="feedback-list">
+                            {data.recommendations.map((rec, idx) => (
+                                <li key={idx} className="feedback-item">
+                                    <div className="feedback-icon">💡</div>
+                                    <div>{rec}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <button className="btn btn-full" onClick={onRestart}>
+                        🔄 Start New Interview
+                    </button>
+                </div>
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
